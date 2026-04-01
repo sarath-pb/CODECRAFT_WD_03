@@ -132,6 +132,8 @@ function minimax(board, depth, isMaximizing) {
             if (board[i] === '') {
                 board[i] = 'O';
                 let score = minimax(board, depth + 1, false);
+                board[i] = '';
+                bestScore = Math.max(score, bestScore);
             }
         }
         return bestScore;
@@ -171,7 +173,7 @@ function checkWin() {
 }
 
 function checkWinner() {
-    for (let condition of WinningConditions) {
+    for (let condition of winningConditions) {
         const [a, b, c] = condition;
         if (
             gameBoard[a] === '' ||
@@ -184,7 +186,7 @@ function checkWinner() {
             gameBoard[a] === gameBoard[b] &&
             gameBoard[a] === gameBoard[c]
         ) {
-            return gameBoard;
+            return gameBoard[a];
         }
     }
     return null;
@@ -201,4 +203,71 @@ function checkDraw() {
 
 function isBoardFull() {
     return gameBoard.every(cell => cell !== '');
+}
+function endGame(message, winner) {
+    gameActive = false;
+    gameStatus.textContent = message;
+    gameStatus.style.color = winner === 'X' ? '#667eea' : winner === 'O' ? '#764ba2' : '#666';
+
+    if (winner === 'X') {
+        scores.X++;
+    } else if (winner === 'O') {
+        scores.O++;
+    } else if (winner === 'draw') {
+        scores.draws++;
+    }
+
+    updateScoreDisplay();
+    saveScores();
+    cells.forEach(cell => cell.classList.add('disabled'));
+}
+
+function resetGame() {
+    gameBoard = ['', '', '', '', '', '', '', '', ''];
+    currentPlayer = 'X';
+    gameActive = true;
+    gameStatus.textContent = '';
+
+    cells.forEach(cell => {
+        cell.textContent = '';
+        cell.classList.remove('x', 'o', 'disabled');
+    });
+
+    updateDisplay();
+}
+
+function setGameMode(useAI) {
+    isAIMode = useAI;
+    
+    if (useAI) {
+        pvaiBtn.classList.add('active');
+        pvpBtn.classList.remove('active');
+    } else {
+        pvpBtn.classList.add('active');
+        pvaiBtn.classList.remove('active');
+    }
+
+    resetGame();
+}
+
+function updateDisplay() {
+    currentPlayerDisplay.textContent = currentPlayer;
+}
+
+function updateScoreDisplay() {
+    scoreXDisplay.textContent = scores.X;
+    scoreODisplay.textContent = scores.O;
+    scoreDrawsDisplay.textContent = scores.draws;
+}
+
+function saveScores() {
+    localStorage.setItem('tictacScores', JSON.stringify(scores));
+}
+
+function loadScores() {
+    const savedScores = localStorage.getItem('tictacScores');
+    if (savedScores) {
+        scores = JSON.parse(savedScores);
+    }
+
 }
